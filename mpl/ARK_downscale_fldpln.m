@@ -65,17 +65,18 @@ for j = 1:numfiles;
     %convert sgwsl indicies to spatial mid-cell
     %starting points?
     yul3k = yllcorner3k+(nrows3k*cellsize3k)+cellsize3k;
-    xul3k = xllcorner3k;
-    
+    xul3k = xllcorner3k;    
     
     f3k_xyz(:,1) = xul3k+((f3k_c*cellsize3k)-(cellsize3k)/2); %mid cell. x locations. convert to spatial
     f3k_xyz(:,2) = yul3k-((f3k_r*cellsize3k)+(cellsize3k)/2); %mid cell. y locations?
 
 
     %identify all the sgwsl indicies within range of the floodplain buffer
+    %https://www.mathworks.com/help/stats/rangesearch.html
+    %default value is 'exhaustive'.  software computes the distances from all X points to each Y point to find nearest neighbors.
     [id,Dis]= rangesearch( %Find all neighbors within specified distance
-        fp.fldplnbuffer(:,1:2), %identify these points (floodplain edge?)
-        f3k_xyz(:,1:2), %within range of these points (
+        fp.fldplnbuffer(:,1:2), %identify these points (floodplain edge?). fine resolution. 
+        f3k_xyz(:,1:2), %within range of these points. coarse resolution
         cellsize3k*1.5, %range
         'Distance','Cityblock');
         
@@ -84,12 +85,13 @@ for j = 1:numfiles;
 
     fpbuff = fp.fldplnbuffer;
 
-    %loop through each low-res sgwsl point and compute differences with neighbouring hi-res
+    %loop through each coarse sgwsl point and compute differences with neighbouring hi-res
     %"look for the closest 30 m cells whose elevations are lower than the simulated water surface elevation"
     for k = 1:length(id) 
-        %get this floodplain point info
+    
+        %get this floodplain (fine) point info
         getxyzid = fpbuff(
-            id{k,1}, %row of hi-res point ids within range of this low-res point
+            id{k,1}, %id of best matching fine point
             1:3); %get xyz's for this set
             
         getxyzid(:,4) = id{k,1}; %and the id
